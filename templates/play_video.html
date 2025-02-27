@@ -1,0 +1,39 @@
+<!-- play_video.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Analysis - Anomaly Detection System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+</head>
+<body>
+    <div class="header">
+        <div class="logo-container">
+            <img class="logo" src="{{ url_for('static', filename='images/app_logo.png') }}" alt="Anomaly AI Logo">
+            <h1 class="dashboard-heading">Anomaly Detection System</h1>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="video-container">
+            <video controls width="100%">
+                <source src="{{ url_for('uploaded_file', filename=video_filename) }}" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+        </div>
+
+        <div class="controls">
+            <button onclick="predict()" class="btn predict-btn">
+                Analyze Video
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const video_filename = "{{video_filename}}";
+    </script>
+    <script src="{{ url_for('static', filename='js/interface.js') }}"></script>
+</body>
+</html>
