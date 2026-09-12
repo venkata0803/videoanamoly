@@ -1,13 +1,14 @@
-Video Anomaly Detection
+# Video Anomaly Detection
 
-A deep learning-based video classification application that analyzes uploaded videos and classifies them as either Anomaly or Normal.
+A deep learning-based video classification application that analyzes uploaded videos and classifies them as either **Anomaly** or **Normal**.
 
 The project uses a Flask web application for video upload and prediction, OpenCV and NumPy for video preprocessing, and a custom Keras 3D CNN architecture that combines RGB video information with optical-flow features.
 
-Overview
+## Overview
 
 The system processes a video through the following pipeline:
 
+```text
 Input Video
     ↓
 Video Frame Extraction
@@ -31,73 +32,63 @@ Uniform Sampling to 64 Frames
        Softmax Classifier
             ↓
      Anomaly / Normal
+```
 
-Features
+## Features
 
-Upload videos through a Flask web interface
+- Upload videos through a Flask web interface
+- Store uploaded videos in an `uploads` directory
+- Extract RGB frames from videos
+- Calculate dense optical flow using the Farneback algorithm
+- Combine RGB and optical-flow information into a 5-channel representation
+- Uniformly sample videos to 64 frames
+- Apply normalization and video augmentation
+- Classify videos using a 3D CNN
+- Display the prediction as `Anomaly` or `Normal`
 
-Store uploaded videos in an uploads directory
+## Technology Stack
 
-Extract RGB frames from videos
+### Backend
 
-Calculate dense optical flow using the Farneback algorithm
+- Python
+- Flask
 
-Combine RGB and optical-flow information into a 5-channel representation
+### Deep Learning
 
-Uniformly sample videos to 64 frames
+- TensorFlow / Keras
+- 3D Convolutional Neural Network
+- Conv3D
+- MaxPooling3D
+- Dense layers
+- Dropout
+- Softmax classification
 
-Apply normalization and video augmentation
+### Video Processing
 
-Classify videos using a 3D CNN
+- OpenCV
+- NumPy
 
-Display the prediction as Anomaly or Normal
-
-Technology Stack
-
-Backend
-
-Python
-
-Flask
-
-Deep Learning
-
-TensorFlow / Keras
-
-3D Convolutional Neural Network
-
-Conv3D
-
-MaxPooling3D
-
-Dense layers
-
-Dropout
-
-Softmax classification
-
-Video Processing
-
-OpenCV
-
-NumPy
-
-Model Architecture
+## Model Architecture
 
 The model accepts an input tensor with the shape:
 
+```text
 (64, 224, 224, 5)
+```
 
 The five channels contain:
 
+```text
 3 RGB channels + 2 Optical Flow channels
+```
 
 The input is divided into two separate branches.
 
-RGB Branch
+### RGB Branch
 
 The first three channels are processed using multiple 3D convolution and pooling layers.
 
+```text
 RGB Input
    ↓
 Conv3D
@@ -123,11 +114,13 @@ Conv3D
 Conv3D
    ↓
 MaxPooling3D
+```
 
-Optical Flow Branch
+### Optical Flow Branch
 
 The final two channels are processed through a separate series of 3D convolution and pooling layers.
 
+```text
 Optical Flow Input
        ↓
     Conv3D
@@ -153,19 +146,23 @@ Optical Flow Input
     Conv3D
        ↓
  MaxPooling3D
+```
 
-Feature Fusion
+### Feature Fusion
 
 The RGB and optical-flow features are combined using element-wise multiplication.
 
+```text
 RGB Features ─────┐
                   ├── Multiply → MaxPooling3D
 Optical Flow ─────┘
+```
 
 Additional 3D convolution and pooling layers are then applied to the fused features.
 
 The final classification layers are:
 
+```text
 Flatten
    ↓
 Dense(128, ReLU)
@@ -175,120 +172,95 @@ Dropout(0.2)
 Dense(32, ReLU)
    ↓
 Dense(2, Softmax)
+```
 
 The prediction is converted into:
 
+```text
 0 → Anomaly
 1 → Normal
+```
 
-Video Preprocessing
+## Video Preprocessing
 
-Frame Extraction
+### Frame Extraction
 
 Videos are read using OpenCV. Each frame is resized to:
 
+```text
 224 × 224
+```
 
 Frames are converted from BGR to RGB.
 
-Optical Flow
+### Optical Flow
 
 Dense optical flow is calculated between consecutive frames using OpenCV's Farneback optical-flow method.
 
 The horizontal and vertical optical-flow components are:
 
-Mean-adjusted to reduce camera movement effects
-
-Normalized
-
-Combined with the RGB channels
+- Mean-adjusted to reduce camera movement effects
+- Normalized
+- Combined with the RGB channels
 
 The resulting representation is:
 
+```text
 [R, G, B, Flow-X, Flow-Y]
+```
 
-Uniform Sampling
+### Uniform Sampling
 
 The input video is uniformly sampled to:
 
+```text
 64 frames
+```
 
 Padding is applied when the sampled video contains fewer than the target number of frames.
 
-Data Augmentation
+### Data Augmentation
 
 The preprocessing pipeline includes:
 
-Random horizontal flipping
-
-Color jittering
-
-Normalization
+- Random horizontal flipping
+- Color jittering
+- Normalization
 
 Color jittering modifies the saturation and value components of the video frames.
 
-Prediction Pipeline
+## Prediction Pipeline
 
-The prediction process is implemented in predictmodel.py.
+The prediction process is implemented in `predictmodel.py`.
 
 When a video is submitted:
 
-The trained model weights are loaded from keras_model.h5.
+1. The trained model weights are loaded from `keras_model.h5`.
+2. The uploaded video is converted into the RGB + optical-flow representation.
+3. The video is uniformly sampled to 64 frames.
+4. Color jittering is applied.
+5. Random horizontal flipping is applied.
+6. RGB and optical-flow features are normalized.
+7. The processed video is passed to the trained model.
+8. The class with the highest prediction score is selected.
+9. The result is returned as `Anomaly` or `Normal`.
 
-The uploaded video is converted into the RGB + optical-flow representation.
-
-The video is uniformly sampled to 64 frames.
-
-Color jittering is applied.
-
-Random horizontal flipping is applied.
-
-RGB and optical-flow features are normalized.
-
-The processed video is passed to the trained model.
-
-The class with the highest prediction score is selected.
-
-The result is returned as Anomaly or Normal.
-
-Flask Application
+## Flask Application
 
 The Flask application provides the web interface and prediction endpoints.
 
-Routes
+### Routes
 
-Route
+| Route | Method | Description |
+|---|---|---|
+| `/` | GET | Displays the main page |
+| `/upload` | POST | Uploads a video |
+| `/uploads/<filename>` | GET | Serves an uploaded video |
+| `/predict` | POST | Runs the model and returns the prediction |
 
-Method
+## Project Structure
 
-Description
-
-/
-
-GET
-
-Displays the main page
-
-/upload
-
-POST
-
-Uploads a video
-
-/uploads/<filename>
-
-GET
-
-Serves an uploaded video
-
-/predict
-
-POST
-
-Runs the model and returns the prediction
-
-Project Structure
-
+```text
 Video-Anomaly-Detection/
 │
 ├── app.py
@@ -306,151 +278,148 @@ Video-Anomaly-Detection/
 ├── requirements.txt
 ├── .gitignore
 └── README.md
+```
 
-File Description
+## File Description
 
-app.py
+### `app.py`
 
 Contains the Flask application, video upload functionality, uploaded-video serving route, and prediction endpoint.
 
-videoTransforms.py
+### `videoTransforms.py`
 
 Contains video conversion and preprocessing functions:
 
-getOpticalFlow()
+- `getOpticalFlow()`
+- `Video2Npy()`
+- `normalize()`
+- `random_flip()`
+- `uniform_sampling()`
+- `color_jitter()`
 
-Video2Npy()
-
-normalize()
-
-random_flip()
-
-uniform_sampling()
-
-color_jitter()
-
-predictmodel.py
+### `predictmodel.py`
 
 Loads the trained model weights, preprocesses an uploaded video, performs inference, and returns the final classification.
 
-model.py
+### `model.py`
 
 Defines the Keras 3D CNN architecture with separate RGB and optical-flow branches, feature fusion, and the final two-class classifier.
 
-keras_model.h5
+### `keras_model.h5`
 
 Contains the trained model weights used during prediction.
 
-Installation
+## Installation
 
-1. Clone the Repository
+### 1. Clone the Repository
 
+```bash
 git clone <your-github-repository-url>
 cd <your-project-folder>
+```
 
-2. Create a Virtual Environment
+### 2. Create a Virtual Environment
 
+```bash
 python -m venv venv
+```
 
-Windows
+#### Windows
 
+```bash
 venv\Scripts\activate
+```
 
-Linux / macOS
+#### Linux / macOS
 
+```bash
 source venv/bin/activate
+```
 
-3. Install Dependencies
+### 3. Install Dependencies
 
-If requirements.txt is available:
+If `requirements.txt` is available:
 
+```bash
 pip install -r requirements.txt
+```
 
 The project requires Python packages for Flask, TensorFlow/Keras, OpenCV, and NumPy.
 
-Running the Application
+## Running the Application
 
 Start the Flask application:
 
+```bash
 python app.py
+```
 
 The Flask development server will start and provide a local URL that can be opened in a web browser.
 
-Using the Application
+## Using the Application
 
-Open the application in a browser.
+1. Open the application in a browser.
+2. Upload a video.
+3. The video is saved in the `uploads` directory.
+4. The uploaded video can be displayed through the web interface.
+5. Run the prediction.
+6. The video is processed using RGB and optical-flow features.
+7. The trained model generates the final classification.
+8. The result is displayed as either `Anomaly` or `Normal`.
 
-Upload a video.
+## Input and Output
 
-The video is saved in the uploads directory.
-
-The uploaded video can be displayed through the web interface.
-
-Run the prediction.
-
-The video is processed using RGB and optical-flow features.
-
-The trained model generates the final classification.
-
-The result is displayed as either Anomaly or Normal.
-
-Input and Output
-
-Input
+### Input
 
 A video uploaded through the Flask web interface.
 
-Output
+### Output
 
 One of the following classifications:
 
+```text
 Anomaly
+```
 
 or
 
+```text
 Normal
+```
 
-Important Notes
+## Important Notes
 
-keras_model.h5 must be available for prediction.
+- `keras_model.h5` must be available for prediction.
+- The model expects input with 64 frames, a resolution of 224 × 224, and 5 channels.
+- Uploaded videos are stored in the `uploads` directory.
+- The current Flask application runs in debug mode for development.
+- Production deployment should use an appropriate production server and secure file-upload configuration.
 
-The model expects input with 64 frames, a resolution of 224 × 224, and 5 channels.
+## Limitations
 
-Uploaded videos are stored in the uploads directory.
+- The project currently performs binary classification into `Anomaly` and `Normal`.
+- Prediction depends on the availability of the trained `keras_model.h5` weights.
+- The application is configured as a development Flask application.
+- Dataset details and model performance metrics are not included in this repository documentation.
 
-The current Flask application runs in debug mode for development.
-
-Production deployment should use an appropriate production server and secure file-upload configuration.
-
-Limitations
-
-The project currently performs binary classification into Anomaly and Normal.
-
-Prediction depends on the availability of the trained keras_model.h5 weights.
-
-The application is configured as a development Flask application.
-
-Dataset details and model performance metrics are not included in this repository documentation.
-
-Future Improvements
+## Future Improvements
 
 Possible improvements include:
 
-Add model accuracy and evaluation metrics
+- Add model accuracy and evaluation metrics
+- Add support for more video formats
+- Improve video preprocessing and augmentation
+- Add prediction confidence scores
+- Add visualization of detected anomalous segments
+- Improve production deployment and file-upload security
+- Add a dedicated results dashboard
 
-Add support for more video formats
+## Author
 
-Improve video preprocessing and augmentation
+**Venkata Ganapathi Subramanian V**
 
-Add prediction confidence scores
+**Roll No:** 23f1000054
 
-Add visualization of detected anomalous segments
-
-Improve production deployment and file-upload security
-
-Add a dedicated results dashboard
-
-
-License
+## License
 
 This project was developed for educational purposes.
